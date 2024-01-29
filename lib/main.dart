@@ -60,12 +60,12 @@ class _NavigationExampleState extends State<NavigationExample> {
       body: <Widget>[
         /// Home page
         Card(
-          shadowColor: Colors.transparent,
+          shadowColor: Colors.transparent ,
           margin: const EdgeInsets.all(8.0),
           child: SizedBox.expand(
             child: Center(
               child: Text(
-                'Home page',
+                'Home page content',
                 style: theme.textTheme.titleLarge,
               ),
             ),
