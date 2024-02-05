@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:sfbu_hub/api_layer/api.dart' as api;
+import 'package:sfbu_hub/pages/coursePage.dart';
 
 class NavigationBarApp extends StatelessWidget {
   const NavigationBarApp({super.key});
@@ -26,6 +28,12 @@ class _NavigationExampleState extends State<NavigationExample> {
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
     return Scaffold(
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          api.LocalStorageApi().clearLocal();
+        },
+        child: const Icon(Icons.add),
+      ),
       bottomNavigationBar: NavigationBar(
         onDestinationSelected: (int index) {
           setState(() {
@@ -55,18 +63,7 @@ class _NavigationExampleState extends State<NavigationExample> {
       ),
       body: <Widget>[
         /// Home page
-        Card(
-          shadowColor: Colors.transparent ,
-          margin: const EdgeInsets.all(8.0),
-          child: SizedBox.expand(
-            child: Center(
-              child: Text(
-                'Home page content',
-                style: theme.textTheme.titleLarge,
-              ),
-            ),
-          ),
-        ),
+        const CoursePage(),
 
         /// Notifications page
         const Padding(

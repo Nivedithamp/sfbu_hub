@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'pages/loginpage.dart';
 import 'pages/homepage.dart';
-
+import 'package:sfbu_hub/api_layer/api.dart' as api;
 
 void main() => runApp(const FirstPage());
 
@@ -14,34 +13,26 @@ class FirstPage extends StatefulWidget {
 }
 
 class _FirstPageState extends State<FirstPage> {
-
-  SharedPreferences? prefs;
-
-  
-
-  @override
-  void initState() {
-    super.initState();
-    SharedPreferences.getInstance().then((SharedPreferences? prefs) {
-      setState(() {
-        this.prefs = prefs;
-      });
-    });
-  }
+  String? token;
 
   void refresh() {
-
     setState(() {});
   }
 
+  void getToken() async {
+    final token = await api.LocalStorageApi().getLoginToken();
+    setState(() {
+      this.token = token;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    final loginToken = prefs?.getString('loginToken');
-    if (loginToken == null) {
+    getToken();
+    if (token == null) {
       return MaterialApp(
         theme: ThemeData(useMaterial3: true),
-        home: LoginPage( callback: refresh ),
+        home: LoginPage(),
       );
     } else {
       return MaterialApp(
@@ -49,6 +40,5 @@ class _FirstPageState extends State<FirstPage> {
         home: const NavigationBarApp(),
       );
     }
-
   }
 }
