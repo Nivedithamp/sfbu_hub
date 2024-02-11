@@ -12,6 +12,8 @@ class CoursePage extends StatefulWidget {
 class CoursePageState extends State<CoursePage> {
   CourseResponse? courseResponse;
   bool isLoading = false;
+  bool hasCanvasToken = false;
+  final TextEditingController _canvasTokenController = TextEditingController();
 
   @override
   void initState() {
@@ -23,8 +25,11 @@ class CoursePageState extends State<CoursePage> {
     setState(() {
       isLoading = true;
     });
-    courseResponse = await api.GraphQlApi().getCourses();
-
+    hasCanvasToken = true;
+    print("hasCanvasToken: $hasCanvasToken");
+    if (hasCanvasToken) {
+      courseResponse = await api.GraphQlApi().getCourses();
+    }
     setState(() {
       isLoading = false;
     });
@@ -34,10 +39,29 @@ class CoursePageState extends State<CoursePage> {
   Widget build(BuildContext context) {
     return isLoading
         ? const Center(child: CircularProgressIndicator())
-        : courseResponse == null
-            ? ElevatedButton(
-                onPressed: getCourse,
-                child: const Text('Courses'),
+        : hasCanvasToken == false
+            ? Center(
+                child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      const Text(
+                          "You need to add your Canvas token to view your courses.",
+                          style: TextStyle(fontSize: 20)),
+                      TextField(
+                        decoration: const InputDecoration(
+                          hintText: "Canvas Token",
+                        ),
+                        controller: _canvasTokenController,
+                      ),
+                      ElevatedButton(
+                        onPressed: () async {
+                          await api.GraphQlApi()
+                              .setCanvasToken(_canvasTokenController.text);
+                          getCourse();
+                        },
+                        child: const Text("Add Token"),
+                      )
+                    ]),
               )
             : ListView.builder(
                 itemCount: courseResponse!.courses!.length,
@@ -48,11 +72,12 @@ class CoursePageState extends State<CoursePage> {
                         title: Text(courseResponse!.courses![index].name!,
                             style: const TextStyle(fontSize: 15)),
                         subtitle: Text(
-                            '${courseResponse!.courses![index].schdule_day!} ${courseResponse!.courses![index].schdule_time1!} - ${courseResponse!.courses![index].schdule_time2!}',
+                            '${courseResponse!.courses![index].schedule_day!} ${courseResponse!.courses![index].schedule_time1!} - ${courseResponse!.courses![index].schedule_time2!}',
                             style: const TextStyle(
                                 fontSize: 15, color: Colors.green)),
-                        trailing: courseResponse!.courses![index].location ==
-                                null
+                        trailing: (courseResponse!.courses![index].location ??
+                                    "null") ==
+                                "null"
                             ? const Text("Online",
                                 style:
                                     TextStyle(fontSize: 15, color: Colors.red))

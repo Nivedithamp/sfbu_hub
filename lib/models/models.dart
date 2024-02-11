@@ -26,29 +26,29 @@ class Course {
   final String? id;
   final String? name;
   final bool? is_public;
-  final String? schdule_day;
-  final String? schdule_time1;
-  final String? schdule_time2;
+  final String? schedule_day;
+  final String? schedule_time1;
+  final String? schedule_time2;
   final String? location;
 
   Course({
     this.id,
     this.name,
     this.is_public,
-    this.schdule_day,
-    this.schdule_time1,
-    this.schdule_time2,
+    this.schedule_day,
+    this.schedule_time1,
+    this.schedule_time2,
     this.location,
   });
 
   factory Course.fromJson(Map<String, dynamic> json) {
     return Course(
-      id: json['id'],
-      name: json['name'],
-      is_public: json['is_public'],
-      schdule_day: json['schdule_day'],
-      schdule_time1: json['schdule_time1'],
-      schdule_time2: json['schdule_time2'],
+      id: json['id'] ?? "xxx",
+      name: json['name'] ?? "xxx",
+      is_public: json['is_public'] ?? false,
+      schedule_day: json['schedule_day'] ?? "xxx",
+      schedule_time1: json['schedule_time1'] ?? "xxx",
+      schedule_time2: json['schedule_time2'] ?? "xxx",
       location: json['location'],
     );
   }
@@ -58,9 +58,9 @@ class Course {
       'id': id,
       'name': name,
       'is_public': is_public,
-      'schdule_day': schdule_day,
-      'schdule_time1': schdule_time1,
-      'schdule_time2': schdule_time2,
+      'schdule_day': schedule_day,
+      'schdule_time1': schedule_time1,
+      'schdule_time2': schedule_time2,
       'location': location,
     };
   }

@@ -1,13 +1,11 @@
-import 'dart:math';
-
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:sfbu_hub/api_layer/graphql_config.dart';
 import 'package:sfbu_hub/models/models.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class GraphQlApi {
-  static GraphQLConfig _graphQLConfig = GraphQLConfig();
-  GraphQLClient _client = _graphQLConfig.clientToQuery();
+  static final GraphQLConfig _graphQLConfig = GraphQLConfig();
+  final GraphQLClient _client = _graphQLConfig.clientToQuery();
 
   Future<LoginResponse> getOtp(String email) async {
     final String getOtp = """
@@ -66,9 +64,9 @@ class GraphQlApi {
               id,
               name,
               is_public,
-              schdule_day,
-              schdule_time1,
-              schdule_time2,
+              schedule_day,
+              schedule_time1,
+              schedule_time2,
               location
             },
             error,
@@ -93,8 +91,61 @@ class GraphQlApi {
         courseResponse.error_message == "Invalid token") {
       LocalStorageApi().clearLocal();
     }
-
+    // print(result.data!['getCourses']);
     return courseResponse;
+  }
+
+  Future<LoginResponse> setCanvasToken(String canvas_token) async {
+    final String token = (await LocalStorageApi().getLoginToken())!;
+    final String email = (await LocalStorageApi().getEmail())!;
+
+    final String setCanvasToken = """
+      mutation {
+        setCanvasToken(email: "$email", token: "$token", canvas_token: "$canvas_token") {
+          token,
+          error,
+          error_message
+        }
+      }
+    """;
+
+    final QueryOptions options = QueryOptions(
+      document: gql(setCanvasToken),
+    );
+
+    final QueryResult result = await _client.query(options);
+
+    if (result.hasException) {
+      // print(result.exception.toString());
+      throw Exception(result.exception.toString());
+    }
+
+    // print(result.data!['setCanvasToken']);
+
+    return LoginResponse.fromJson(result.data!['setCanvasToken']);
+  }
+
+  Future<bool> hasCanvasToken() async {
+    final String token = (await LocalStorageApi().getLoginToken())!;
+    final String email = (await LocalStorageApi().getEmail())!;
+    final String query = """
+      query {
+        hasCanvasToken(email: "$email", token: "$token") {
+          has_canvas_token
+        }
+      }
+    """;
+
+    final QueryOptions options = QueryOptions(
+      document: gql(query),
+    );
+
+    return _client.query(options).then((result) {
+      if (result.hasException) {
+        throw Exception(result.exception.toString());
+      }
+      return result.data!['hasCanvasToken']['has_canvas_token'];
+    });
   }
 }
 
