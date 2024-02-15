@@ -90,3 +90,84 @@ class CourseResponse {
     };
   }
 }
+
+class ChatMessage {
+  final String? message;
+  final String? senderName;
+  final String? senderEmail;
+  final String? groupId;
+  final String? createdAt;
+
+  ChatMessage({
+    this.message,
+    this.senderName,
+    this.senderEmail,
+    this.groupId,
+    this.createdAt,
+  });
+
+  factory ChatMessage.fromJson(Map<String, dynamic> json) {
+    return ChatMessage(
+      message: json['message'],
+      senderName: json['sender_name'],
+      senderEmail: json['sender_email'],
+      groupId: json['group_id'],
+      createdAt: json['created_at'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'message': message,
+      'sender_name': senderName,
+      'sender_email': senderEmail,
+      'group_id': groupId,
+      'created_at': createdAt,
+    };
+  }
+}
+
+class ChatMember {
+  final String? id;
+  final String? name;
+  final String? email;
+
+  ChatMember({this.id, this.name, this.email});
+
+  factory ChatMember.fromJson(Map<String, dynamic> json) {
+    return ChatMember(id: json['id'], name: json['name'], email: json['email']);
+  }
+
+  Map<String, dynamic> toJson() {
+    return {'id': id, 'name': name, 'email': email};
+  }
+}
+
+class ChatGroup {
+  final String? id;
+  final String? name;
+  final List<ChatMember>? members;
+
+  ChatGroup({
+    this.id,
+    this.name,
+    this.members,
+  });
+
+  factory ChatGroup.fromJson(Map<String, dynamic> json) {
+    return ChatGroup(
+        id: json['id'],
+        name: json['name'],
+        members: (json['members'] as List)
+            .map((e) => ChatMember.fromJson(e))
+            .toList());
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'members': members?.map((e) => e.toJson()).toList(),
+    };
+  }
+}

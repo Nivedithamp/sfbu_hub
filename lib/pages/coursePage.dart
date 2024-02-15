@@ -17,16 +17,17 @@ class CoursePageState extends State<CoursePage> {
 
   @override
   void initState() {
-    super.initState();
     getCourse();
+    super.initState();
   }
 
   void getCourse() async {
     setState(() {
       isLoading = true;
     });
-    hasCanvasToken = true;
-    print("hasCanvasToken: $hasCanvasToken");
+
+    hasCanvasToken = await api.GraphQlApi().hasCanvasToken();
+    print(hasCanvasToken);
     if (hasCanvasToken) {
       courseResponse = await api.GraphQlApi().getCourses();
     }
