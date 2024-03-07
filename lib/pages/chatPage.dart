@@ -15,6 +15,7 @@ class ChatPage extends StatefulWidget {
 class ChatPageState extends State<ChatPage> {
   bool isLoading = false;
   List<ChatGroup> chatGroups = [];
+  Map<String, int> chatGroupUnreadCount = {};
 
   @override
   void initState() {
@@ -28,6 +29,11 @@ class ChatPageState extends State<ChatPage> {
     });
 
     chatGroups = await api.GraphQlApi().getChatGroups();
+    List<ChatRead> chatReads = await api.GraphQlApi().chatReads();
+    for (var chatRead in chatReads) {
+      chatGroupUnreadCount[chatRead.courseId] = chatRead.count;
+    }
+
     setState(() {
       isLoading = false;
     });
@@ -43,6 +49,13 @@ class ChatPageState extends State<ChatPage> {
             title: Text(chatGroups[index].name!),
             subtitle: Text(chatGroups[index].name!),
             splashColor: Colors.green[100],
+            trailing: chatGroupUnreadCount[chatGroups[index].id]! > 0
+                ? Badge.count(
+                    count: chatGroupUnreadCount[chatGroups[index].id]!,
+                    backgroundColor: Colors.green[300]!,
+                    textStyle: const TextStyle(color: Colors.white),
+                  )
+                : null,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12.0),
               side: BorderSide(color: Colors.green[100]!),
@@ -55,7 +68,7 @@ class ChatPageState extends State<ChatPage> {
                   builder: (context) =>
                       ChatDetailPage(chatGroup: chatGroups[index]),
                 ),
-              );
+              ).then((value) => getChat());
             },
           );
         },
@@ -151,6 +164,7 @@ class ChatDetailPageState extends State<ChatDetailPage> {
   @override
   void initState() {
     super.initState();
+    api.GraphQlApi().markChatRead(widget.chatGroup.id!);
     _timer = Timer.periodic(const Duration(milliseconds: 1000), (timer) {
       refreshChat();
     });
@@ -159,6 +173,7 @@ class ChatDetailPageState extends State<ChatDetailPage> {
   @override
   void dispose() {
     _timer?.cancel();
+    api.GraphQlApi().markChatRead(widget.chatGroup.id!);
     super.dispose();
   }
 
@@ -170,7 +185,7 @@ class ChatDetailPageState extends State<ChatDetailPage> {
       email = (await api.LocalStorageApi().getEmail())!;
     }
     // print("refreshing chat");
-
+    api.GraphQlApi().markChatRead(widget.chatGroup.id!);
     chatMessages = await api.GraphQlApi().getChatMessages(widget.chatGroup.id!);
     chatMessages = chatMessages.reversed.toList();
 
@@ -185,51 +200,55 @@ class ChatDetailPageState extends State<ChatDetailPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.chatGroup.name!),
-      ),
-      body: Center(
-        child: isLoading
-            ? const CircularProgressIndicator()
-            : Column(
-                children: [
-                  chatMessages.isEmpty
-                      ? const Expanded(
-                          child: Center(
-                              child: Text('No messages in this group yet.')))
-                      : Expanded(
-                          child: ListView.builder(
-                            itemCount: chatMessages.length,
-                            itemBuilder: (BuildContext context, int index) {
-                              return ChatBubble(
-                                text: chatMessages[index].message!,
-                                senderName: chatMessages[index].senderName!,
-                                isUser:
-                                    chatMessages[index].senderEmail == email,
-                                time: chatMessages[index].createdAt!,
-                              );
-                            },
-                            reverse: true,
-                          ),
+        appBar: AppBar(
+          title: Text(widget.chatGroup.name!),
+        ),
+        body: SafeArea(
+          child: Center(
+            child: isLoading
+                ? const CircularProgressIndicator()
+                : Column(
+                    children: [
+                      chatMessages.isEmpty
+                          ? const Expanded(
+                              child: Center(
+                                  child:
+                                      Text('No messages in this group yet.')))
+                          : Expanded(
+                              child: ListView.builder(
+                                itemCount: chatMessages.length,
+                                itemBuilder: (BuildContext context, int index) {
+                                  return ChatBubble(
+                                    text: chatMessages[index].message!,
+                                    senderName: chatMessages[index].senderName!,
+                                    isUser: chatMessages[index].senderEmail ==
+                                        email,
+                                    time: chatMessages[index].createdAt!,
+                                  );
+                                },
+                                reverse: true,
+                              ),
+                            ),
+                      const Divider(height: 1.0),
+                      Container(
+                        decoration:
+                            BoxDecoration(color: Theme.of(context).cardColor),
+                        child: TextComposer(
+                          onSubmitted: (String text) async {
+                            await api.GraphQlApi().sendMessage(
+                              text,
+                              widget.chatGroup.id!,
+                            );
+                            await api.GraphQlApi()
+                                .markChatRead(widget.chatGroup.id!);
+                            refreshChat();
+                          },
                         ),
-                  const Divider(height: 1.0),
-                  Container(
-                    decoration:
-                        BoxDecoration(color: Theme.of(context).cardColor),
-                    child: TextComposer(
-                      onSubmitted: (String text) async {
-                        await api.GraphQlApi().sendMessage(
-                          text,
-                          widget.chatGroup.id!,
-                        );
-                        refreshChat();
-                      },
-                    ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-      ),
-    );
+          ),
+        ));
   }
 }
 

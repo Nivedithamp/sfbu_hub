@@ -211,3 +211,18 @@ class Assignment {
     };
   }
 }
+
+class ChatRead {
+  final String courseId;
+  final int count;
+
+  ChatRead({required this.courseId, required this.count});
+
+  factory ChatRead.fromJson(Map<String, dynamic> json) {
+    return ChatRead(courseId: json['course_id'], count: json['count']);
+  }
+
+  Map<String, dynamic> toJson() {
+    return {'course_id': courseId, 'count': count};
+  }
+}
