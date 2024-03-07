@@ -80,7 +80,7 @@ class ChatBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var parsedDate = DateTime.parse(time);
+    var parsedDate = DateTime.parse(time).toLocal();
     // var formattedDate = DateFormat.yMMMd().format(parsedDate);
     // format should be 12:00 PM, Jan 1, 2021
     var formattedDate =
@@ -194,7 +194,9 @@ class ChatDetailPageState extends State<ChatDetailPage> {
             : Column(
                 children: [
                   chatMessages.isEmpty
-                      ? const Text('No messages in this group yet.')
+                      ? const Expanded(
+                          child: Center(
+                              child: Text('No messages in this group yet.')))
                       : Expanded(
                           child: ListView.builder(
                             itemCount: chatMessages.length,

@@ -44,8 +44,8 @@ class _AssignmentPageState extends State<AssignmentPage> {
                 subtitle: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    Text(DateFormat('yyyy-MM-dd hh:mm a')
-                        .format(DateTime.parse(assignments[index].dueDate!))),
+                    Text(DateFormat('yyyy-MM-dd hh:mm a').format(
+                        DateTime.parse(assignments[index].dueDate!).toLocal())),
                     Text(assignments[index].description!.split(" ")[0]),
                   ],
                 ),
