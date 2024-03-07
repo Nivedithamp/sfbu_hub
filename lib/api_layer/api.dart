@@ -308,6 +308,57 @@ class GraphQlApi {
       return assignments;
     });
   }
+
+  Future<List<ChatRead>> chatReads() async {
+    final String email = (await LocalStorageApi().getEmail())!;
+    final String query = """
+      query {
+        chatReads(email: "$email") {
+          course_id,
+          count
+        }
+      }
+    """;
+
+    final QueryOptions options = QueryOptions(
+      document: gql(query),
+    );
+
+    return _client.query(options).then((result) {
+      if (result.hasException) {
+        throw Exception(result.exception.toString());
+      }
+
+      List<ChatRead> chatReads = [];
+      for (var chatRead in result.data!['chatReads']) {
+        chatReads.add(ChatRead.fromJson(chatRead));
+      }
+      return chatReads;
+    });
+  }
+
+  Future<bool> markChatRead(String courseId) async {
+    final String email = (await LocalStorageApi().getEmail())!;
+    final String query = """
+      mutation {
+        markChatRead(email: "$email", course_id: "$courseId")
+      }
+    """;
+
+    final QueryOptions options = QueryOptions(
+      document: gql(query),
+    );
+
+    final QueryResult result = await _client.query(options);
+
+    if (result.hasException) {
+      throw Exception(result.exception.toString());
+    }
+
+    print(result.data!['markChatRead']);
+
+    return true;
+  }
 }
 
 class LocalStorageApi {
