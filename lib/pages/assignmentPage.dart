@@ -36,34 +36,42 @@ class _AssignmentPageState extends State<AssignmentPage> {
   Widget build(BuildContext context) {
     return isLoading
         ? const Center(child: CircularProgressIndicator())
-        : ListView.builder(
-            itemCount: assignments.length,
-            itemBuilder: (BuildContext context, int index) {
-              return ListTile(
-                title: Text(assignments[index].name!),
-                subtitle: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text(DateFormat('yyyy-MM-dd hh:mm a').format(
-                        DateTime.parse(assignments[index].dueDate!).toLocal())),
-                    Text(assignments[index].description!.split(" ")[0]),
-                  ],
+        : assignments.isEmpty
+            ? const Center(
+                child: Text(
+                  "COngradulations! You have no assignments due.",
+                  style: TextStyle(fontSize: 20),
                 ),
-                trailing: assignments[index].isSubmitted!
-                    ? const Icon(
-                        Icons.check,
-                        color: Colors.green,
-                      )
-                    : DateTime.parse(assignments[index].dueDate!)
-                            .isBefore(DateTime.now())
+              )
+            : ListView.builder(
+                itemCount: assignments.length,
+                itemBuilder: (BuildContext context, int index) {
+                  return ListTile(
+                    title: Text(assignments[index].name!),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Text(DateFormat('yyyy-MM-dd hh:mm a').format(
+                            DateTime.parse(assignments[index].dueDate!)
+                                .toLocal())),
+                        Text(assignments[index].description!.split(" ")[0]),
+                      ],
+                    ),
+                    trailing: assignments[index].isSubmitted!
                         ? const Icon(
-                            Icons.alarm,
-                            color: Colors.red,
-                            semanticLabel: "Late",
+                            Icons.check,
+                            color: Colors.green,
                           )
-                        : const Icon(Icons.pending_actions,
-                            color: Colors.orange),
-              );
-            });
+                        : DateTime.parse(assignments[index].dueDate!)
+                                .isBefore(DateTime.now())
+                            ? const Icon(
+                                Icons.alarm,
+                                color: Colors.red,
+                                semanticLabel: "Late",
+                              )
+                            : const Icon(Icons.pending_actions,
+                                color: Colors.orange),
+                  );
+                });
   }
 }
