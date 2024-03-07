@@ -143,10 +143,11 @@ class GraphQlApi {
     final QueryResult result = await _client.query(options);
 
     if (result.hasException) {
+      print("error");
+      LocalStorageApi().clearLocal();
       throw Exception(result.exception.toString());
     }
-    print(result.data!);
-    print(email + " " + token);
+
     return result.data!['hasCanvasToken']['has_canvas_token'];
   }
 
@@ -225,9 +226,33 @@ class GraphQlApi {
     });
   }
 
+  Future<String> getShortName() async {
+    final String email = (await LocalStorageApi().getEmail())!;
+    final String token = (await LocalStorageApi().getLoginToken())!;
+    final String query = """
+      query {
+        user(email: "$email", token: "$token") {
+          short_name
+        }
+      }
+    """;
+
+    final QueryOptions options = QueryOptions(
+      document: gql(query),
+    );
+
+    final QueryResult result = await _client.query(options);
+
+    if (result.hasException) {
+      throw Exception(result.exception.toString());
+    }
+
+    return result.data!['user']['short_name'];
+  }
+
   Future<LoginResponse> sendMessage(String text, String groupId) async {
     final String email = (await LocalStorageApi().getEmail())!;
-    final String name = (await LocalStorageApi().getEmail())!;
+    final String name = (await LocalStorageApi().getShortName())!;
     final String query = """
       mutation {
         addChatMessage(sender_email: "$email", sender_name: "$name", message: "$text", course_id: "$groupId") {
@@ -249,6 +274,40 @@ class GraphQlApi {
 
     return LoginResponse.fromJson(result.data!['sendMessage']);
   }
+
+  Future<List<Assignment>> getAssignments() async {
+    final String email = (await LocalStorageApi().getEmail())!;
+    final String token = (await LocalStorageApi().getLoginToken())!;
+    final String query = """
+      query {
+        assignments(email: "$email", token: "$token") {
+          id,
+          name,
+          due_at,
+          description,
+          course_id,
+          is_submitted,
+        }
+      }
+    """;
+
+    final QueryOptions options = QueryOptions(
+      document: gql(query),
+    );
+
+    return _client.query(options).then((result) {
+      if (result.hasException) {
+        throw Exception(result.exception.toString());
+      }
+
+      List<Assignment> assignments = [];
+      for (var assignment in result.data!['assignments']) {
+        assignments.add(Assignment.fromJson(assignment));
+      }
+
+      return assignments;
+    });
+  }
 }
 
 class LocalStorageApi {
@@ -259,6 +318,10 @@ class LocalStorageApi {
 
   Future<String?> getShortName() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
+    if (prefs.getString('shortName') == null) {
+      final shortName = await GraphQlApi().getShortName();
+      prefs.setString('shortName', shortName);
+    }
     return prefs.getString('shortName');
   }
 

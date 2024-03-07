@@ -1,4 +1,5 @@
-import 'dart:math';
+import 'dart:async';
+import 'package:intl/intl.dart';
 
 import 'package:flutter/material.dart';
 import 'package:sfbu_hub/models/models.dart';
@@ -15,6 +16,7 @@ class ChatPageState extends State<ChatPage> {
   bool isLoading = false;
   List<ChatGroup> chatGroups = [];
 
+  @override
   void initState() {
     getChat();
     super.initState();
@@ -26,7 +28,6 @@ class ChatPageState extends State<ChatPage> {
     });
 
     chatGroups = await api.GraphQlApi().getChatGroups();
-    print(chatGroups);
     setState(() {
       isLoading = false;
     });
@@ -41,6 +42,12 @@ class ChatPageState extends State<ChatPage> {
           return ListTile(
             title: Text(chatGroups[index].name!),
             subtitle: Text(chatGroups[index].name!),
+            splashColor: Colors.green[100],
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12.0),
+              side: BorderSide(color: Colors.green[100]!),
+            ),
+            contentPadding: EdgeInsets.all(8.0),
             onTap: () {
               Navigator.push(
                 context,
@@ -58,38 +65,69 @@ class ChatPageState extends State<ChatPage> {
 }
 
 class ChatBubble extends StatelessWidget {
+  final String senderName;
   final String text;
-  final String senderName; // New parameter for sender's name
   final bool isUser;
+  final String time;
 
-  ChatBubble(this.text, this.senderName, this.isUser);
+  const ChatBubble({
+    Key? key,
+    required this.senderName,
+    required this.text,
+    required this.isUser,
+    required this.time,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Align(
-      alignment: isUser ? Alignment.topRight : Alignment.topLeft,
-      child: Column(
-        crossAxisAlignment:
-            isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-        children: [
-          Text(
-            isUser ? "You" : senderName, // Display sender's name
-            style: const TextStyle(
-              fontSize: 12.0,
-              fontWeight: FontWeight.bold,
-              color: Colors.grey,
-            ),
+    var parsedDate = DateTime.parse(time);
+    // var formattedDate = DateFormat.yMMMd().format(parsedDate);
+    // format should be 12:00 PM, Jan 1, 2021
+    var formattedDate =
+        DateFormat.jm().addPattern(' ').add_yMMMMd().format(parsedDate);
+
+    // print(formattedDate);
+
+    return Container(
+      margin: EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
+      alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
+      child: Container(
+        decoration: BoxDecoration(
+          color: isUser ? Colors.green[100] : Colors.grey[300],
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(12.0),
+            topRight: Radius.circular(12.0),
+            bottomLeft: !isUser ? Radius.circular(0.0) : Radius.circular(12.0),
+            bottomRight: isUser ? Radius.circular(0.0) : Radius.circular(12.0),
           ),
-          Container(
-            margin: const EdgeInsets.all(8.0),
-            padding: const EdgeInsets.all(12.0),
-            decoration: BoxDecoration(
-              color: isUser ? Colors.blue : Colors.green,
-              borderRadius: BorderRadius.circular(8.0),
+        ),
+        padding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              senderName,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: isUser ? Colors.green[900] : Colors.black,
+                fontSize: 9.0,
+              ),
             ),
-            child: Text(text, style: const TextStyle(color: Colors.white)),
-          ),
-        ],
+            SizedBox(height: 4.0),
+            Text(
+              text,
+              style: TextStyle(color: Colors.black),
+            ),
+            SizedBox(height: 6.0),
+            Text(
+              formattedDate,
+              style: TextStyle(
+                color: isUser ? Colors.green[700] : Colors.grey[600],
+                fontSize: 12.0,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -108,27 +146,40 @@ class ChatDetailPageState extends State<ChatDetailPage> {
   bool isLoading = false;
   List<ChatMessage> chatMessages = [];
   String email = "";
+  Timer? _timer;
 
   @override
   void initState() {
     super.initState();
-    refreshChat();
+    _timer = Timer.periodic(const Duration(milliseconds: 1000), (timer) {
+      refreshChat();
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
   }
 
   void refreshChat() async {
-    setState(() {
-      isLoading = true;
-    });
+    // setState(() {
+    //   isLoading = true;
+    // });
     if (email == "") {
       email = (await api.LocalStorageApi().getEmail())!;
     }
+    // print("refreshing chat");
 
     chatMessages = await api.GraphQlApi().getChatMessages(widget.chatGroup.id!);
-    print(chatMessages);
+    chatMessages = chatMessages.reversed.toList();
 
-    setState(() {
-      isLoading = false;
-    });
+    // print(chatMessages);
+
+    // setState(() {
+    //   isLoading = false;
+    // });
+    setState(() {});
   }
 
   @override
@@ -142,18 +193,23 @@ class ChatDetailPageState extends State<ChatDetailPage> {
             ? const CircularProgressIndicator()
             : Column(
                 children: [
-                  Expanded(
-                    child: ListView.builder(
-                      itemCount: chatMessages.length,
-                      itemBuilder: (BuildContext context, int index) {
-                        return ChatBubble(
-                          chatMessages[index].message!,
-                          chatMessages[index].senderName!,
-                          chatMessages[index].senderEmail == email,
-                        );
-                      },
-                    ),
-                  ),
+                  chatMessages.isEmpty
+                      ? const Text('No messages in this group yet.')
+                      : Expanded(
+                          child: ListView.builder(
+                            itemCount: chatMessages.length,
+                            itemBuilder: (BuildContext context, int index) {
+                              return ChatBubble(
+                                text: chatMessages[index].message!,
+                                senderName: chatMessages[index].senderName!,
+                                isUser:
+                                    chatMessages[index].senderEmail == email,
+                                time: chatMessages[index].createdAt!,
+                              );
+                            },
+                            reverse: true,
+                          ),
+                        ),
                   const Divider(height: 1.0),
                   Container(
                     decoration:

@@ -171,3 +171,43 @@ class ChatGroup {
     };
   }
 }
+
+class Assignment {
+  final String? id;
+  final String? name;
+  final String? description;
+  final String? dueDate;
+  final String? courseId;
+  final bool? isSubmitted;
+
+  Assignment({
+    this.id,
+    this.name,
+    this.description,
+    this.dueDate,
+    this.courseId,
+    this.isSubmitted,
+  });
+
+  factory Assignment.fromJson(Map<String, dynamic> json) {
+    return Assignment(
+      id: json['id'],
+      name: json['name'],
+      description: json['description'],
+      dueDate: json['due_at'],
+      courseId: json['course_id'],
+      isSubmitted: json['is_submitted'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'description': description,
+      'due_at': dueDate,
+      'course_id': courseId,
+      'is_submitted': isSubmitted,
+    };
+  }
+}

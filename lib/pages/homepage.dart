@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sfbu_hub/api_layer/api.dart' as api;
 import 'package:sfbu_hub/pages/coursePage.dart';
 import 'package:sfbu_hub/pages/chatPage.dart';
+import 'package:sfbu_hub/pages/assignmentPage.dart';
 
 class NavigationBarApp extends StatelessWidget {
   const NavigationBarApp({super.key});
@@ -50,8 +51,8 @@ class _NavigationExampleState extends State<NavigationExample> {
             label: 'Home',
           ),
           NavigationDestination(
-            icon: Badge(child: Icon(Icons.notifications_sharp)),
-            label: 'Notifications',
+            icon: Badge(child: Icon(Icons.assignment_outlined)),
+            label: 'Assignments',
           ),
           NavigationDestination(
             icon: Badge(
@@ -67,27 +68,7 @@ class _NavigationExampleState extends State<NavigationExample> {
         const CoursePage(),
 
         /// Notifications page
-        const Padding(
-          padding: EdgeInsets.all(8.0),
-          child: Column(
-            children: <Widget>[
-              Card(
-                child: ListTile(
-                  leading: Icon(Icons.notifications_sharp),
-                  title: Text('Notification 1'),
-                  subtitle: Text('This is a notification'),
-                ),
-              ),
-              Card(
-                child: ListTile(
-                  leading: Icon(Icons.notifications_sharp),
-                  title: Text('Notification 2'),
-                  subtitle: Text('This is a notification'),
-                ),
-              ),
-            ],
-          ),
-        ),
+        const AssignmentPage(),
 
         /// Messages page
         const ChatPage(),
