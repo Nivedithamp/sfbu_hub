@@ -30,6 +30,15 @@ class _NavigationExampleState extends State<NavigationExample> {
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
     return Scaffold(
+      appBar: AppBar(
+          backgroundColor: Colors.blue,
+          title: Center(
+              child: Container(
+            width: 80,
+            height: 80,
+            child: Image.network(
+                'https://www.sfbu.edu/sites/default/files/SFBU-logo_0.png'),
+          ))),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           api.LocalStorageApi().clearLocal();
