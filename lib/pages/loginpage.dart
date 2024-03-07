@@ -57,6 +57,7 @@ class _LoginPageState extends State<LoginPage> {
 
                 api.LocalStorageApi().setLoginToken(loginResponse.token!);
                 api.LocalStorageApi().setEmail(emailController.text);
+                
               } else {
                 if (!isValidEmail(emailController.text)) {
                   Fluttertoast.showToast(
@@ -64,8 +65,10 @@ class _LoginPageState extends State<LoginPage> {
                       toastLength: Toast.LENGTH_SHORT);
                   return;
                 }
+                print(emailController.text + " ed1");
                 LoginResponse loginResponse =
                     await api.GraphQlApi().getOtp(emailController.text);
+                print(loginResponse);
                 setState(() {
                   if (loginResponse.error!) {
                     Fluttertoast.showToast(
