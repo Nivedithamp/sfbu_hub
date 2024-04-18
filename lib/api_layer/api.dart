@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:sfbu_hub/api_layer/graphql_config.dart';
 import 'package:sfbu_hub/models/models.dart';
@@ -6,6 +8,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 class GraphQlApi {
   static final GraphQLConfig _graphQLConfig = GraphQLConfig();
   final GraphQLClient _client = _graphQLConfig.clientToQuery();
+  final GraphQLClient _subscriptionClient =
+      _graphQLConfig.clientToSubscription();
 
   Future<LoginResponse> getOtp(String email) async {
     final String getOtp = """
@@ -355,7 +359,180 @@ class GraphQlApi {
       throw Exception(result.exception.toString());
     }
 
-    print(result.data!['markChatRead']);
+    return true;
+  }
+
+  Future<bool> clearChat(String courseId) async {
+    final String query = """
+      mutation {
+        clearChat(course_id: "$courseId")
+      }
+    """;
+
+    final QueryOptions options = QueryOptions(
+      document: gql(query),
+    );
+
+    final QueryResult result = await _client.query(options);
+
+    if (result.hasException) {
+      throw Exception(result.exception.toString());
+    }
+
+    return true;
+  }
+
+  Future<List<Club>> getClubs() async {
+    const String query = """
+      query {
+        clubs {
+          id,
+          name,
+        }
+      }
+    """;
+
+    final QueryOptions options = QueryOptions(
+      document: gql(query),
+    );
+
+    return _client.query(options).then((result) {
+      if (result.hasException) {
+        throw Exception(result.exception.toString());
+      }
+
+      List<Club> clubs = [];
+      for (var club in result.data!['clubs']) {
+        clubs.add(Club.fromJson(club));
+      }
+
+      return clubs;
+    });
+  }
+
+  Future<List<String>> getSubscribedClubs() async {
+    final email = (await LocalStorageApi().getEmail())!;
+    final String query = """
+      query {
+        getClubsforUser(email: "$email") {
+          id,
+        }
+      }
+    """;
+
+    final QueryOptions options = QueryOptions(
+      document: gql(query),
+    );
+
+    return _client.query(options).then((result) {
+      if (result.hasException) {
+        throw Exception(result.exception.toString());
+      }
+
+      List<String> clubs = [];
+      for (var club in result.data!['getClubsforUser']) {
+        clubs.add(club['id']);
+      }
+      return clubs;
+    });
+  }
+
+  Future<List<Event>> getEvents() async {
+    final email = (await LocalStorageApi().getEmail())!;
+
+    final String query = """
+      query {
+        getEvents(email: "$email") {
+          date
+          info
+          location
+          name
+          time
+        }
+      }
+    """;
+
+    final QueryOptions options = QueryOptions(
+      document: gql(query),
+    );
+
+    print(query);
+
+    return _client.query(options).then((result) {
+      if (result.hasException) {
+        throw Exception(result.exception.toString());
+      }
+
+      print(result.data);
+
+      List<Event> events = [];
+      for (var event in result.data!['getEvents']) {
+        events.add(Event.fromJson(event));
+        print(event);
+      }
+
+      return events;
+    });
+  }
+
+  Future<bool> addClub(String clubId) async {
+    final email = (await LocalStorageApi().getEmail())!;
+    final String query = """
+      mutation {
+        addClub(email: "$email", club_id: "$clubId")
+      }
+    """;
+
+    final QueryOptions options = QueryOptions(
+      document: gql(query),
+    );
+
+    final QueryResult result = await _client.query(options);
+
+    if (result.hasException) {
+      throw Exception(result.exception.toString());
+    }
+
+    return true;
+  }
+
+  Future<bool> removeClub(String clubId) async {
+    final email = (await LocalStorageApi().getEmail())!;
+    final String query = """
+      mutation {
+        removeClub(email: "$email", club_id: "$clubId")
+      }
+    """;
+
+    final QueryOptions options = QueryOptions(
+      document: gql(query),
+    );
+
+    final QueryResult result = await _client.query(options);
+
+    if (result.hasException) {
+      throw Exception(result.exception.toString());
+    }
+
+    return true;
+  }
+
+  Future<bool> setNotificationToken(String email, String token) async {
+    final String query = """
+      mutation {
+        addNotificationToken(email: "$email", token: "$token")
+      }
+    """;
+
+    final QueryOptions options = QueryOptions(
+      document: gql(query),
+    );
+
+    final QueryResult result = await _client.query(options);
+
+    if (result.hasException) {
+      throw Exception(result.exception.toString());
+    }
 
     return true;
   }
@@ -394,6 +571,7 @@ class LocalStorageApi {
   Future<void> setEmail(String email) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.setString('email', email);
+    GraphQlApi().setNotificationToken(email, (await getNotificationToken())!);
   }
 
   Future<void> clearLocal() async {
@@ -401,5 +579,19 @@ class LocalStorageApi {
     prefs.remove('loginToken');
     prefs.remove('email');
     prefs.clear();
+  }
+
+  Future<void> setNotificationToken(String token) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    final email = (await getEmail());
+    if (email != null && email != "") {
+      GraphQlApi().setNotificationToken(email, token);
+    }
+    prefs.setString('notificationToken', token);
+  }
+
+  Future<String?> getNotificationToken() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getString('notificationToken');
   }
 }

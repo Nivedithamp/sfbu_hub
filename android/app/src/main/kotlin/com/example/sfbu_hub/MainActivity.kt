@@ -1,4 +1,4 @@
-package com.example.sfbu_hub
+package edu.sfbu.sfbu_hub
 
 import io.flutter.embedding.android.FlutterActivity
 
