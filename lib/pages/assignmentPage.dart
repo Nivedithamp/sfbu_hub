@@ -39,7 +39,7 @@ class _AssignmentPageState extends State<AssignmentPage> {
         : assignments.isEmpty
             ? const Center(
                 child: Text(
-                  "COngradulations! You have no assignments due.",
+                  "Congratulations! You have no assignments due.",
                   style: TextStyle(fontSize: 20),
                 ),
               )

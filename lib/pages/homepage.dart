@@ -3,6 +3,7 @@ import 'package:sfbu_hub/api_layer/api.dart' as api;
 import 'package:sfbu_hub/pages/coursePage.dart';
 import 'package:sfbu_hub/pages/chatPage.dart';
 import 'package:sfbu_hub/pages/assignmentPage.dart';
+import 'package:sfbu_hub/pages/clubPage.dart';
 
 class NavigationBarApp extends StatelessWidget {
   const NavigationBarApp({super.key});
@@ -64,10 +65,15 @@ class _NavigationExampleState extends State<NavigationExample> {
           ),
           NavigationDestination(
             icon: Badge(
-              label: Text('2'),
               child: Icon(Icons.messenger_sharp),
             ),
             label: 'Messages',
+          ),
+          NavigationDestination(
+            icon: Badge(
+              child: Icon(Icons.local_activity_rounded),
+            ),
+            label: 'Clubs',
           ),
         ],
       ),
@@ -80,6 +86,8 @@ class _NavigationExampleState extends State<NavigationExample> {
 
         /// Messages page
         const ChatPage(),
+
+        const ClubPage(),
       ][currentPageIndex],
     );
   }

@@ -226,3 +226,67 @@ class ChatRead {
     return {'course_id': courseId, 'count': count};
   }
 }
+
+class Club {
+  final String id;
+  final String name;
+
+  Club({required this.id, required this.name});
+
+  factory Club.fromJson(Map<String, dynamic> json) {
+    return Club(id: json['id'], name: json['name']);
+  }
+
+  Map<String, dynamic> toJson() {
+    return {'id': id, 'name': name};
+  }
+}
+
+// type Event {
+//         id: String,
+//         name: String,
+//         info: String,
+//         date: String,
+//         time: String,
+//         location: String
+//     }
+
+class Event {
+  final String id;
+  final String name;
+  final String info;
+  final String date;
+  final String time;
+  final String location;
+
+  Event({
+    required this.id,
+    required this.name,
+    required this.info,
+    required this.date,
+    required this.time,
+    required this.location,
+  });
+
+  factory Event.fromJson(Map<String, dynamic> json) {
+    return Event(
+      id: json['id'] ?? "",
+      name: json['name'] ?? "",
+      info: json['info'] ?? "",
+      date: json['date'] ?? "",
+      time: json['time'] ?? "",
+      location: json['location'] ?? "",
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'info': info,
+      'date': date,
+      'time': time,
+      'location': location,
+    };
+  }
+}
